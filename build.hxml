@@ -1,0 +1,10 @@
+-debug
+-lib sfhx
+-lib sfgml
+-cp src
+-js .\out\fairy.gml
+-D sfgml-next
+-D sfgml-snake-case
+-D sfgml-main=fairy_init
+-main Main
+-dce full
