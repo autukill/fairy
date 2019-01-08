@@ -1,5 +1,4 @@
-package openfl.events; #if !flash
-
+package events;
 
 /**
  * The EventPhase class provides values for the `eventPhase`
@@ -12,8 +11,3 @@ package openfl.events; #if !flash
 	public var CAPTURING_PHASE = 1;
 	
 }
-
-
-#else
-typedef EventPhase = flash.events.EventPhase;
-#end
