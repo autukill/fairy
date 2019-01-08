@@ -130,7 +130,7 @@ class SliceImpl<T> {
         return out;
     }
 
-    inline function iterator():Iterator<T> {
+    public inline function iterator():Iterator<T> {
         return new SliceIterator(this);
     }
 }
