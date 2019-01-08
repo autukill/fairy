@@ -7,8 +7,9 @@ fairy
 --
 - haxe 4.0.0-preview.5
 - IntelliJ IDEA Community
-- sfhx
-- sfgml
+- sfhx:https://bitbucket.org/yal_cc/sfhx
+- sfgml:https://bitbucket.org/yal_cc/sfgml
+- fairytest:https://github.com/autukill/fairytest
 
 进展(已完成):
 --
