@@ -66,24 +66,21 @@ class SliceImpl<T> {
     public function lastIndexOf(val:T, i:Int = -1):Int return this.array.lastIndexOf(val, i);
 
     // 附加元素后返回一个新的 slice, 原 slice 不变
-    public function concat(arr:Array<T>):Slice<T> {
-        var newArr = this.array.concat(arr);
-        return new SliceImpl<T>(newArr);
-    }
+    public function concat(arr:Array<T>):Slice<T> return new Slice<T>(this.array.concat(arr));
 
     public function join(sep:String):String return this.array.join(sep);
 
     public function reverse():Void this.array.reverse();
 
-    public function slice(pos:Int, ?end:Int):Array<T> return this.array.slice(pos, end);
+    public function slice(pos:Int, ?end:Int):Slice<T> return new Slice(this.array.slice(pos, end));
 
-    public function copy():Array<T> return this.array.copy();
+    public function copy():Slice<T> return new Slice(this.array.copy());
 
     public function sort(fn:T -> T -> Int):Void this.array.sort(fn);
 
-    public function map<S>(fn:T -> S):Array<S> return this.array.map(fn);
+    public function map<S>(fn:T -> S):Slice<S> return new Slice(this.array.map(fn));
 
-    public function filter(fn:T -> Bool):Array<T> return this.array.filter(fn);
+    public function filter(fn:T -> Bool):Slice<T> return new Slice(this.array.filter(fn));
 
     // 移除最后一个元素并返回它
     public function pop():Null<T> {
@@ -111,9 +108,9 @@ class SliceImpl<T> {
         return true;
     }
     // 从 pos 位置开始移除 len 长度的元素,包括 pos 索引,然后返回它们
-    public function splice(pos:Int, len:Int):Array<T> {
+    public function splice(pos:Int, len:Int):Slice<T> {
         var arrayLength = this.array.length;
-        if (len < 0 || pos >= arrayLength) return new Array<T> ();
+        if (len < 0 || pos >= arrayLength) return new Slice<T> ();
         if (pos < 0) {
             pos += len;
             if (pos < 0) pos = 0;
@@ -122,7 +119,7 @@ class SliceImpl<T> {
         var end = pos + len;
         var old = this.array;
         this.array = new Array();
-        var out = new Array();
+        var out = new Slice();
         for (i in 0...arrayLength) {
             if (i >= pos && i < end) {
                 out.push(old[i]);
@@ -155,4 +152,3 @@ class SliceImpl<T> {
     public var slice:Slice<T>;
     public var index:Int;
 }
-
