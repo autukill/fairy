@@ -8,7 +8,7 @@ fairy
 - GameMaker Studio 2 user manual:http://docs2.yoyogames.com/
 - FairyGUI:http://www.fairygui.com/guide/
 - FairyGUI-unity:https://github.com/fairygui/FairyGUI-unity
-- Openfl:https://github.com/openfl/openfl
+- OpenFL:https://github.com/openfl/openfl
 - OpenGL SuperBible:http://www.openglsuperbible.com/
 
 开发环境
@@ -23,6 +23,7 @@ fairy
 --
 移植:
 - openfl.events.* - 事件分发
+- openfl.geom.Point
 
 填充物:
 - support.Slice - 可收缩的数组
