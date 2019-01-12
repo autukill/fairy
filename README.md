@@ -24,6 +24,7 @@ fairy
 移植:
 - openfl.events.* - 事件分发
 - openfl.geom.Point
+- opengl.geom.Rectangle
 
 填充物:
 - support.Slice - 可收缩的数组
