@@ -1,15 +1,16 @@
 fairy
 ==
-一个在开发中的UI框架,目的是 GameMaker Studio 1/2 接入fairygui.
-一部分代码由 openfl 移植来的,因为 gml 没有可收缩的数组,没有反射等原因.所以需要做一定的适配工作.
+一个在开发中的UI框架,目的是 GameMaker Studio 2 接入fairygui.
+由于 gml 主要面向游戏开发的脚本语言,缺少一些有用的函数或者功能,比如没有可收缩的数组.因此需要做一定的适配工作.
 
 参考
 --
-- GameMaker Studio 2 user manual:http://docs2.yoyogames.com/
-- FairyGUI:http://www.fairygui.com/guide/
-- FairyGUI-unity:https://github.com/fairygui/FairyGUI-unity
+- GameMaker Studio 2 user manual:http://docs2.yoyogames.com
+- sfgml:https://yal.cc/r/18/sfgml
+- FairyGUI:http://www.fairygui.com/guide
+- FairyGUI-monogame:https://github.com/fairygui/FairyGUI-monogame
 - OpenFL:https://github.com/openfl/openfl
-- OpenGL SuperBible:http://www.openglsuperbible.com/
+- OpenGL SuperBible:http://www.openglsuperbible.com
 
 开发环境
 --
@@ -21,10 +22,8 @@ fairy
 
 进展(已完成):
 --
-移植:
-- openfl.events.* - 事件分发
-- openfl.geom.Point
-- openfl.geom.Rectangle
-
-填充物:
 - support.Slice - 可收缩的数组
+- events.* - 事件分发
+- geom.Point
+- geom.Rectangle
+- core.NTexture
