@@ -12,7 +12,7 @@ import geom.Rectangle;
 @:keep
 @:native("ntexture")
 class NTexture {
-    public static var Empty(get, null):NTexture;
+    public static var empty(get, null):NTexture;
 
     private static var _empty:NTexture = null;
 
@@ -23,6 +23,7 @@ class NTexture {
     public var root(get, null):NTexture;
     public var width(get, null):Float;
     public var height(get, null):Float;
+    public var sprite(get, null):Sprite;
     public var nativeTexure(get, null):Texture;
 
     private var _sprite:Sprite = null; // gml Sprite, has texture
@@ -31,7 +32,7 @@ class NTexture {
     private var _root:NTexture = null;
     private var _region:Rectangle;
 
-    public static function createEmptyTexture():Sprite {
+    public static function createEmptySprite():Sprite {
         var surface = new Surface(1, 1);
         var buffer = new Buffer(4, BufferKind.Fixed, 1);
         buffer.fill(0, BufferType.u8, 255, 4);
@@ -42,12 +43,20 @@ class NTexture {
         return spr;
     }
 
-    private static function get_Empty():NTexture {
-        if (_empty == null) {
-            var spr = createEmptyTexture();
-            _empty = createFromSprite(spr);
+    private static function get_empty():NTexture {
+        if (NTexture._empty == null) {
+            var spr = createEmptySprite();
+            NTexture._empty = createFromSprite(spr);
         }
-        return _empty;
+        return NTexture._empty;
+    }
+
+    public static function destoryEmpty():Void {
+        if (NTexture._empty != null) {
+            var tmp:NTexture = NTexture._empty;
+            NTexture._empty = null;
+            tmp.Destroy();
+        }
     }
 
     private function new() {}
@@ -99,6 +108,25 @@ class NTexture {
         return that;
     }
 
+    public function Destroy():Void {
+        if (this == NTexture.empty) {
+            return;
+        }
+
+        if (this.root != this) {
+            throw 'Destroy is not allow to call on none root NTexture.';
+        }
+
+        if (this._sprite != null) {
+            this._sprite.destroy();
+        }
+
+        this._nativeTexture = null;
+        this._sprite = null;
+        this._root = null;
+
+    }
+
     private function get_root():NTexture {
         return this._root;
     }
@@ -109,6 +137,10 @@ class NTexture {
 
     private function get_height():Float {
         return this._region.height;
+    }
+
+    private function get_sprite():Sprite {
+        return this._sprite;
     }
 
     private function get_nativeTexure():Texture {
