@@ -26,7 +26,7 @@ class NGraphics {
     public function new() { }
 
     // 清理
-    public function ClearMesh():Void {
+    public function clearMesh():Void {
         this.vertCount = 0;
     }
 
@@ -68,7 +68,7 @@ class NGraphics {
     ];
 
     /// 分配顶点3个属性的缓存数组
-    public function Alloc(vertCount:Int) {
+    public function alloc(vertCount:Int) {
         if (this.vertCount == 0 || this.vertCount != vertCount) {
             this.pos = NativeArray.create(vertCount);
             this.uv = NativeArray.create(vertCount);
@@ -77,7 +77,7 @@ class NGraphics {
     }
 
     /// 分配顶点索引缓存数组
-    private function AllocVertexIndex(requestSize:Int):Void {
+    private function allocVertexIndex(requestSize:Int):Void {
         this.vertIndex = NativeArray.create(requestSize);
     }
 
@@ -86,25 +86,25 @@ class NGraphics {
     /// </summary>
     /// <param name="index">填充位置顶点索引</param>
     /// <param name="rect"></param>
-    private function FillPos(index:Int, rect:Rectangle):Void {
+    private function fillPos(index:Int, rect:Rectangle):Void {
         this.pos[index] = new Point(rect.left, rect.bottom);
         this.pos[index + 1] = new Point(rect.left, rect.top);
         this.pos[index + 2] = new Point(rect.right, rect.top);
         this.pos[index + 3] = new Point(rect.right, rect.bottom);
     }
 
-    private function FillUV(index:Int, rect:Rectangle):Void {
+    private function fillUV(index:Int, rect:Rectangle):Void {
         this.uv[index] = new Point(rect.left, rect.bottom);
         this.uv[index + 1] = new Point(rect.left, rect.top);
         this.uv[index + 2] = new Point(rect.right, rect.top);
         this.uv[index + 3] = new Point(rect.right, rect.bottom);
     }
 
-    private function FillColor(color:Color):Void {
+    private function fillColor(color:Color):Void {
         this.colors = NativeArray.create(this.vertCount, color);
     }
 
-    private function FillShapeUV(posRect:Rectangle, uvRect:Rectangle):Void {
+    private function fillShapeUV(posRect:Rectangle, uvRect:Rectangle):Void {
         var len = this.pos.length;
 
         for (i in 0...len) {
@@ -115,9 +115,9 @@ class NGraphics {
         }
     }
 
-    private function FillVertexIndexs():Void {
+    private function fillVertexIndexs():Void {
 
-        AllocVertexIndex((this.vertCount >> 1) * 3);
+        allocVertexIndex((this.vertCount >> 1) * 3);
 
         var k:Int = 0;
         var loopTimes:Int = Math.floor(vertCount / 4);
@@ -135,12 +135,12 @@ class NGraphics {
     }
 
     /// 构建一个矩形
-    public function BuildRect(posRect:Rectangle, uvRect:Rectangle, fillColor:Color):Void {
-        Alloc(4);
+    public function buildRect(posRect:Rectangle, uvRect:Rectangle, fillColor:Color):Void {
+        alloc(4);
 
-        FillPos(0, posRect);
-        FillUV(0, uvRect);
-        FillColor(fillColor);
+        fillPos(0, posRect);
+        fillUV(0, uvRect);
+        fillColor(fillColor);
 
         this.vertIndex = TRIANGLES;
     }
@@ -153,33 +153,33 @@ class NGraphics {
     /// <param name="lineSize"></param>
     /// <param name="lineColor"></param>
     /// <param name="fillColor"></param>
-    public function BuildRectWithLine(vertRect:Rectangle, uvRect:Rectangle, lineSize:Int, lineColor:Color,
+    public function buildRectWithLine(vertRect:Rectangle, uvRect:Rectangle, lineSize:Int, lineColor:Color,
                                       fillColor:Color):Void {
         if (lineSize == 0) {
-            BuildRect(vertRect, uvRect, fillColor);
+            buildRect(vertRect, uvRect, fillColor);
         }
         else {
-            Alloc(20);
+            alloc(20);
 
             var rect:Rectangle;
             //left,right
             rect = new Rectangle(0, 0, lineSize, vertRect.height);
-            FillPos(0, rect);
+            fillPos(0, rect);
             rect = new Rectangle(vertRect.width - lineSize, 0, lineSize, vertRect.height);
-            FillPos(4, rect);
+            fillPos(4, rect);
 
             //top, bottom
             rect = new Rectangle(lineSize, 0, vertRect.width - lineSize * 2, lineSize);
-            FillPos(8, rect);
+            fillPos(8, rect);
 
             rect = new Rectangle(lineSize, vertRect.height - lineSize, vertRect.width - lineSize * 2, lineSize);
-            FillPos(12, rect);
+            fillPos(12, rect);
 
             //middle
             rect = new Rectangle(lineSize, lineSize, vertRect.width - lineSize * 2, vertRect.height - lineSize * 2);
-            FillPos(16, rect);
+            fillPos(16, rect);
 
-            FillShapeUV(vertRect, uvRect);
+            fillShapeUV(vertRect, uvRect);
 
             var arr = this.colors;
             for (i in 0...16) {
@@ -190,7 +190,7 @@ class NGraphics {
                 arr[i] = fillColor;
             }
 
-            FillVertexIndexs();
+            fillVertexIndexs();
         }
     }
 
@@ -206,7 +206,7 @@ class NGraphics {
     /// <param name="topRightRadius"></param>
     /// <param name="bottomLeftRadius"></param>
     /// <param name="bottomRightRadius"></param>
-    public function DrawRoundRect(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color, topLeftRadius:Float,
+    public function buildRoundRect(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color, topLeftRadius:Float,
                                   topRightRadius:Float, bottomLeftRadius:Float, bottomRightRadius:Float):Void {
         NGraphics._CornerRadius[0] = topRightRadius;
         NGraphics._CornerRadius[1] = topLeftRadius;
@@ -227,7 +227,7 @@ class NGraphics {
                 numSides++;
         }
 
-        Alloc(numSides + 1);
+        alloc(numSides + 1);
 
         this.pos[0] = new Point(vertRect.width / 2, vertRect.height / 2);
         var k:Int = 1;
@@ -271,9 +271,9 @@ class NGraphics {
             }
         }
 
-        FillShapeUV(vertRect, uvRect);
+        fillShapeUV(vertRect, uvRect);
 
-        AllocVertexIndex(numSides * 3);
+        allocVertexIndex(numSides * 3);
         var triangles:Array<Int> = this.vertIndex;
 
         k = 0;
@@ -286,6 +286,6 @@ class NGraphics {
         triangles[k++] = numSides;
         triangles[k++] = 1;
 
-        FillColor(fillColor);
+        fillColor(fillColor);
     }
 }
