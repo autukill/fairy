@@ -100,7 +100,7 @@ class NGraphics {
         this.uv[index + 3] = new Point(rect.right, rect.bottom);
     }
 
-    private function fillColor(color:Color):Void {
+    private function fillColors(color:Color):Void {
         this.colors = NativeArray.create(this.vertCount, color);
     }
 
@@ -140,7 +140,7 @@ class NGraphics {
 
         fillPos(0, posRect);
         fillUV(0, uvRect);
-        fillColor(fillColor);
+        fillColors(fillColor);
 
         this.vertIndex = TRIANGLES;
     }
@@ -207,7 +207,7 @@ class NGraphics {
     /// <param name="bottomLeftRadius"></param>
     /// <param name="bottomRightRadius"></param>
     public function buildRoundRect(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color, topLeftRadius:Float,
-                                  topRightRadius:Float, bottomLeftRadius:Float, bottomRightRadius:Float):Void {
+                                   topRightRadius:Float, bottomLeftRadius:Float, bottomRightRadius:Float):Void {
         NGraphics._CornerRadius[0] = topRightRadius;
         NGraphics._CornerRadius[1] = topLeftRadius;
         NGraphics._CornerRadius[2] = bottomLeftRadius;
@@ -286,6 +286,6 @@ class NGraphics {
         triangles[k++] = numSides;
         triangles[k++] = 1;
 
-        fillColor(fillColor);
+        fillColors(fillColor);
     }
 }
