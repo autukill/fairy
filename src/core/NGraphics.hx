@@ -1,4 +1,8 @@
 package core;
+
+import core.FillUtils.FillMethod;
+import utils.ToolSet;
+import gml.ds.ArrayList;
 import gml.Mathf;
 import gml.NativeArray;
 import gml.ds.Color;
@@ -134,6 +138,56 @@ class NGraphics {
         }
     }
 
+    /// <summary>
+    /// 填充四边形的4个点的位置
+    /// </summary>
+    /// <param name="verts"></param>
+    /// <param name="index"></param>
+    /// <param name="rect"></param>
+    public static function fillVertsOfQuad(verts:Array<Point>, index:Int, rect:Rectangle):Void {
+        verts[index] = new Point(rect.x, rect.bottom);
+        verts[index + 1] = new Point(rect.x, rect.y);
+        verts[index + 2] = new Point(rect.right, rect.y);
+        verts[index + 3] = new Point(rect.right, rect.bottom);
+    }
+
+    /// <summary>
+    /// 填充四边形的4个点的uv
+    /// </summary>
+    /// <param name="uv"></param>
+    /// <param name="index"></param>
+    /// <param name="rect"></param>
+    public static function fillUVOfQuad(uv:Array<Point>, index:Int, rect:Rectangle):Void {
+        uv[index] = new Point(rect.x, rect.bottom);
+        uv[index + 1] = new Point(rect.x, rect.y);
+        uv[index + 2] = new Point(rect.right, rect.y);
+        uv[index + 3] = new Point(rect.right, rect.bottom);
+    }
+
+    /// <summary>
+    /// 旋转UV坐标
+    /// </summary>
+    public static function RotateUV(uv:Array<Point>, baseUVRect:Rectangle):Void {
+        var vertCount:Int = uv.length;
+        var X:Float = Math.min(baseUVRect.x, baseUVRect.right);
+        var Y:Float = baseUVRect.y;
+        var Bottom:Float = baseUVRect.bottom;
+        if (Y > Bottom) {
+            Y = Bottom;
+            Bottom = baseUVRect.y;
+        }
+
+        var tmp:Float;
+
+        for (i in 0 ... vertCount) {
+            var m:Point = uv[i];
+            tmp = m.y;
+            m.y = Y + m.x - X;
+            m.x = X + Bottom - tmp;
+            uv[i] = m;
+        }
+    }
+
     /// 构建一个矩形
     public function buildRect(posRect:Rectangle, uvRect:Rectangle, fillColor:Color):Void {
         alloc(4);
@@ -197,7 +251,7 @@ class NGraphics {
     private static var _CornerRadius:Array<Float> = [0, 0, 0, 0];
 
     /// <summary>
-    ///
+    /// 构建圆角矩形
     /// </summary>
     /// <param name="vertRect"></param>
     /// <param name="uvRect"></param>
@@ -287,5 +341,186 @@ class NGraphics {
         triangles[k++] = 1;
 
         fillColors(fillColor);
+    }
+
+    /// <summary>
+    ///  构建椭圆
+    /// </summary>
+    /// <param name="vertRect"></param>
+    /// <param name="uvRect"></param>
+    /// <param name="fillColor"></param>
+    public function buildEllipse(vertRect:Rectangle, uvRect:Rectangle, fillColor:Rectangle):Void {
+        var radiusX:Float = vertRect.width / 2;
+        var radiusY:Float = vertRect.height / 2;
+        var numSides:Int = Math.ceil(Math.PI * (radiusX + radiusY) / 4);
+        if (numSides < 6) numSides = 6;
+
+        alloc(numSides + 1);
+        var vertices:Array<Point> = this.pos;
+        var angleDelta:Float = 2 * Math.PI / numSides;
+        var angle:Float = 0;
+
+        vertices[0] = new Point(radiusX, radiusY);
+        var length = numSides + 1;
+        for (i in 1 ... length) {
+            vertices[i] = new Point(Math.cos(angle) * radiusX + radiusX, Math.sin(angle) * radiusY + radiusY);
+            angle += angleDelta;
+        }
+
+        fillShapeUV(vertRect, uvRect);
+
+        allocVertexIndex(numSides * 3);
+        var triangles:Array<Int> = this.vertIndex;
+
+        var k:Int = 0;
+        for (i in 1 ... numSides) {
+            triangles[k++] = 0;
+            triangles[k++] = i;
+            triangles[k++] = i + 1;
+        }
+
+        triangles[k++] = 0;
+        triangles[k++] = numSides;
+        triangles[k++] = 1;
+
+        fillColors(fillColor);
+    }
+
+    private static var _RESTINDICES:ArrayList = new ArrayList();
+
+    /// <summary>
+    /// 构建一个多边形
+    /// </summary>
+    /// <param name="vertRect"></param>
+    /// <param name="uvRect"></param>
+    /// <param name="points"></param>
+    /// <param name="fillColor"></param>
+    public function buildPolygon(vertRect:Rectangle, uvRect:Rectangle, points:Array<Point>, fillColor:Color):Void {
+        var numVertices:Int = points.length;
+        if (numVertices < 3)
+            return;
+
+        var numTriangles:Int = numVertices - 2;
+        var i, restIndexPos, numRestIndices:Int;
+        var k:Int = 0;
+
+        alloc(numVertices);
+        var vertices:Array<Point> = this.pos;
+
+        for (i in 0...numVertices) {
+            vertices[i] = new Point(points[i].x, -points[i].y);
+        }
+
+        fillShapeUV(vertRect, uvRect);
+
+        // Algorithm "Ear clipping method" described here:
+        // -> https://en.wikipedia.org/wiki/Polygon_triangulation
+        //
+        // Implementation inspired by:
+        // -> http://polyk.ivank.net
+        // -> Starling
+
+        allocVertexIndex(numTriangles * 3);
+        var triangles:Array<Int> = this.vertIndex;
+
+        _RESTINDICES.clear();
+        for (i in numVertices) {
+            _RESTINDICES.add(i);
+        }
+
+        restIndexPos = 0;
+        numRestIndices = numVertices;
+
+        var a:Point, b:Point, c:Point, p:Point;
+        var otherIndex:Int;
+        var earFound:Bool;
+        var i0:Int, i1:Int, i2:Int;
+
+        while (numRestIndices > 3) {
+            earFound = false;
+            i0 = _RESTINDICES[restIndexPos % numRestIndices];
+            i1 = _RESTINDICES[(restIndexPos + 1) % numRestIndices];
+            i2 = _RESTINDICES[(restIndexPos + 2) % numRestIndices];
+
+            a = points[i0];
+            b = points[i1];
+            c = points[i2];
+
+            if ((a.y - b.y) * (c.x - b.x) + (b.x - a.x) * (c.y - b.y) >= 0) {
+                earFound = true;
+                for (i in 3...numRestIndices) {
+                    otherIndex = _RESTINDICES[(restIndexPos + i) % numRestIndices];
+                    p = points[otherIndex];
+
+                    if (ToolSet.isPointInTriangle(p, a, b, c)) {
+                        earFound = false;
+                        break;
+                    }
+                }
+            }
+
+            if (earFound) {
+                triangles[k++] = i0;
+                triangles[k++] = i1;
+                triangles[k++] = i2;
+                _RESTINDICES.delete((restIndexPos + 1) % numRestIndices);
+
+                numRestIndices--;
+                restIndexPos = 0;
+            }
+            else {
+                restIndexPos++;
+                if (restIndexPos == numRestIndices) break; // no more ears
+            }
+        }
+        triangles[k++] = _RESTINDICES[0];
+        triangles[k++] = _RESTINDICES[1];
+        triangles[k++] = _RESTINDICES[2];
+
+        fillColors(fillColor);
+    }
+
+    /// <summary>
+    /// 构建矩形,指定填充方式
+    /// </summary>
+    /// <param name="vertRect"></param>
+    /// <param name="uvRect"></param>
+    /// <param name="method"></param>
+    /// <param name="amount"></param>
+    /// <param name="origin"></param>
+    /// <param name="clockwise"></param>
+    public function brawRectWithFillMethod(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color,
+                                           method:FillMethod, amount:Float, origin:Int, clockwise:Bool):Void {
+        amount = Mathf.clamp(amount, 0, 1);
+        switch (method)
+        {
+            case FillMethod.Horizontal:
+                alloc(4);
+                FillUtils.fillHorizontal(origin, amount, vertRect, uvRect, this.pos, this.uv);
+                break;
+
+            case FillMethod.Vertical:
+                alloc(4);
+                FillUtils.fillVertical(origin, amount, vertRect, uvRect, this.pos, this.uv);
+                break;
+
+            case FillMethod.Radial90:
+                alloc(4);
+                FillUtils.fillRadial90(origin, amount, clockwise, vertRect, uvRect, this.pos, this.uv);
+                break;
+
+            case FillMethod.Radial180:
+                alloc(8);
+                FillUtils.fillRadial180(origin, amount, clockwise, vertRect, uvRect, this.pos, this.uv);
+                break;
+
+            case FillMethod.Radial360:
+                alloc(12);
+                FillUtils.fillRadial360(origin, amount, clockwise, vertRect, uvRect, this.pos, this.uv);
+                break;
+        }
+
+        fillColors(fillColor);
+        fillVertexIndexs();
     }
 }
