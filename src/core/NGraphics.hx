@@ -10,6 +10,7 @@ import geom.Point;
 import geom.Rectangle;
 
 @:keep
+@:native("ngraphics")
 class NGraphics {
     // 启用状态
     public var enable:Bool = true;
@@ -349,7 +350,7 @@ class NGraphics {
     /// <param name="vertRect"></param>
     /// <param name="uvRect"></param>
     /// <param name="fillColor"></param>
-    public function buildEllipse(vertRect:Rectangle, uvRect:Rectangle, fillColor:Rectangle):Void {
+    public function buildEllipse(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color):Void {
         var radiusX:Float = vertRect.width / 2;
         var radiusY:Float = vertRect.height / 2;
         var numSides:Int = Math.ceil(Math.PI * (radiusX + radiusY) / 4);
@@ -386,7 +387,7 @@ class NGraphics {
         fillColors(fillColor);
     }
 
-    private static var _RESTINDICES:ArrayList = new ArrayList();
+    private static var _RESTINDICES:ArrayList<Int> = new ArrayList<Int>();
 
     /// <summary>
     /// 构建一个多边形
@@ -424,7 +425,7 @@ class NGraphics {
         var triangles:Array<Int> = this.vertIndex;
 
         _RESTINDICES.clear();
-        for (i in numVertices) {
+        for (i in 0 ... numVertices) {
             _RESTINDICES.add(i);
         }
 
@@ -489,35 +490,32 @@ class NGraphics {
     /// <param name="amount"></param>
     /// <param name="origin"></param>
     /// <param name="clockwise"></param>
-    public function brawRectWithFillMethod(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color,
-                                           method:FillMethod, amount:Float, origin:Int, clockwise:Bool):Void {
+    public function buildRectWithFillMethod(vertRect:Rectangle, uvRect:Rectangle, fillColor:Color,
+                                            method:FillMethod, amount:Float, origin:Int, clockwise:Bool):Void {
         amount = Mathf.clamp(amount, 0, 1);
         switch (method)
         {
+            case FillMethod.None:
+                return;
             case FillMethod.Horizontal:
                 alloc(4);
                 FillUtils.fillHorizontal(origin, amount, vertRect, uvRect, this.pos, this.uv);
-                break;
 
             case FillMethod.Vertical:
                 alloc(4);
                 FillUtils.fillVertical(origin, amount, vertRect, uvRect, this.pos, this.uv);
-                break;
 
             case FillMethod.Radial90:
                 alloc(4);
                 FillUtils.fillRadial90(origin, amount, clockwise, vertRect, uvRect, this.pos, this.uv);
-                break;
 
             case FillMethod.Radial180:
                 alloc(8);
                 FillUtils.fillRadial180(origin, amount, clockwise, vertRect, uvRect, this.pos, this.uv);
-                break;
 
             case FillMethod.Radial360:
                 alloc(12);
                 FillUtils.fillRadial360(origin, amount, clockwise, vertRect, uvRect, this.pos, this.uv);
-                break;
         }
 
         fillColors(fillColor);
