@@ -26,3 +26,5 @@ fairy
 - geom.Point
 - geom.Rectangle
 - core.NTexture
+- core.NGraphics
+- core.FillUtils
